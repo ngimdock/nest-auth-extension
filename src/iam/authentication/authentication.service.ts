@@ -7,6 +7,7 @@ import {
 import { ConfigType } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
+import { randomUUID } from 'crypto';
 import { ErrorCode } from 'src/common/enum';
 import { User } from 'src/users/entities';
 import { Repository } from 'typeorm';
@@ -14,6 +15,8 @@ import jwtConfig from '../config/jwt.config';
 import { HashingService } from '../hashing/hashing.service';
 import { ActiveUserData } from '../interfaces';
 import { RefreshTokenDto, SignInDto, SignUpDto } from './dto';
+import { RefreshTokenIdsStorage } from './refresh-token-ids.storage';
+import { RefreshTokenPayload } from './types';
 
 @Injectable()
 export class AuthenticationService {
@@ -23,6 +26,7 @@ export class AuthenticationService {
     private readonly jwtService: JwtService,
     @Inject(jwtConfig.KEY)
     private readonly jwtConfiguration: ConfigType<typeof jwtConfig>,
+    private readonly refreshTokenIdsStorage: RefreshTokenIdsStorage,
   ) {}
 
   async signUp(signUpDto: SignUpDto) {
@@ -61,8 +65,8 @@ export class AuthenticationService {
 
   async refreshToken(refreshTokenDto: RefreshTokenDto) {
     try {
-      const { sub } = await this.jwtService.verifyAsync<
-        Pick<ActiveUserData, 'sub'>
+      const { sub, refreshTokenId } = await this.jwtService.verifyAsync<
+        Pick<ActiveUserData, 'sub'> & RefreshTokenPayload
       >(refreshTokenDto.refreshToken, {
         secret: this.jwtConfiguration.secret,
         audience: this.jwtConfiguration.audience,
@@ -73,6 +77,16 @@ export class AuthenticationService {
         id: sub,
       });
 
+      const isRefreshTokenValid = await this.refreshTokenIdsStorage.validate(
+        user.id,
+        refreshTokenId,
+      );
+
+      console.log({ isRefreshTokenValid });
+
+      if (isRefreshTokenValid) this.refreshTokenIdsStorage.invalide(user.id);
+      else throw new Error('Refresh token is invaled.');
+
       return this.generateTokens(user);
     } catch (err) {
       throw new UnauthorizedException();
@@ -80,6 +94,8 @@ export class AuthenticationService {
   }
 
   async generateTokens(user: User) {
+    const refreshTokenId = randomUUID();
+
     const [accessToken, refreshToken] = await Promise.all([
       this.asignToken<Partial<ActiveUserData>>(
         user.id,
@@ -87,17 +103,20 @@ export class AuthenticationService {
         { email: user.email },
       ),
 
-      this.asignToken<Partial<ActiveUserData>>(
+      this.asignToken<RefreshTokenPayload>(
         user.id,
         this.jwtConfiguration.refreshTokenTtl,
+        { refreshTokenId },
       ),
     ]);
+
+    await this.refreshTokenIdsStorage.insert(user.id, refreshTokenId);
 
     return { accessToken, refreshToken };
   }
 
-  private async asignToken<T>(userId: number, expiresIn: number, payload?: T) {
-    return await this.jwtService.signAsync(
+  private asignToken<T>(userId: number, expiresIn: number, payload?: T) {
+    return this.jwtService.signAsync(
       {
         sub: userId,
         ...payload,
