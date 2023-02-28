@@ -4,7 +4,7 @@ import {
   OnApplicationShutdown,
 } from '@nestjs/common';
 import { Redis } from 'ioredis';
-import { InvalidRefeshTokenException } from './exceptions';
+import { InvalidRefeshTokenError } from './exceptions';
 
 @Injectable()
 export class RefreshTokenIdsStorage
@@ -32,7 +32,7 @@ export class RefreshTokenIdsStorage
   async validate(userId: number, tokenId: string) {
     const storedId = await this.redisClient.get(this.getKey(userId));
 
-    // if (storedId !== tokenId) throw new InvalidRefeshTokenException();
+    if (storedId !== tokenId) throw new InvalidRefeshTokenError();
 
     return storedId === tokenId;
   }

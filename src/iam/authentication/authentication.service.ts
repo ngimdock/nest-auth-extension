@@ -15,6 +15,7 @@ import jwtConfig from '../config/jwt.config';
 import { HashingService } from '../hashing/hashing.service';
 import { ActiveUserData } from '../interfaces';
 import { RefreshTokenDto, SignInDto, SignUpDto } from './dto';
+import { InvalidRefeshTokenError } from './exceptions';
 import { RefreshTokenIdsStorage } from './refresh-token-ids.storage';
 import { RefreshTokenPayload } from './types';
 
@@ -89,6 +90,9 @@ export class AuthenticationService {
 
       return this.generateTokens(user);
     } catch (err) {
+      if (err instanceof InvalidRefeshTokenError)
+        throw new UnauthorizedException('Access denied.');
+
       throw new UnauthorizedException();
     }
   }
