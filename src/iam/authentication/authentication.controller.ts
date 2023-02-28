@@ -1,8 +1,7 @@
 import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
-import { ActiveUser } from '../decoratros';
 import { AuthenticationService } from './authentication.service';
 import { Auth } from './decorators';
-import { SignInDto, SignUpDto } from './dto';
+import { RefreshTokenDto, SignInDto, SignUpDto } from './dto';
 import { AuthType } from './enums';
 
 @Auth(AuthType.None)
@@ -19,5 +18,11 @@ export class AuthenticationController {
   @Post('sign-in')
   async signIn(@Body() signInDto: SignInDto) {
     return this.authenticationService.signIn(signInDto);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('refresh-tokens')
+  async refreshToken(@Body() refreshTokenDto: RefreshTokenDto) {
+    return this.authenticationService.refreshToken(refreshTokenDto);
   }
 }
