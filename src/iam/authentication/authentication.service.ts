@@ -104,7 +104,7 @@ export class AuthenticationService {
       this.asignToken<Partial<ActiveUserData>>(
         user.id,
         this.jwtConfiguration.accessTokenTtl,
-        { email: user.email },
+        { email: user.email, role: user.role },
       ),
 
       this.asignToken<RefreshTokenPayload>(
