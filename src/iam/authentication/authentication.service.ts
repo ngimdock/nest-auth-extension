@@ -12,6 +12,7 @@ import { User } from 'src/users/entities';
 import { Repository } from 'typeorm';
 import jwtConfig from '../config/jwt.config';
 import { HashingService } from '../hashing/hashing.service';
+import { ActiveUserData } from '../interfaces';
 import { SignInDto, SignUpDto } from './dto';
 
 @Injectable()
@@ -55,19 +56,34 @@ export class AuthenticationService {
     if (!isPasswordValid)
       throw new UnauthorizedException('Incorrect password.');
 
-    const accessToken = await this.jwrService.signAsync(
+    const [accessToken, refreshToken] = await Promise.all([
+      await this.asignToken<Partial<ActiveUserData>>(
+        user.id,
+        this.jwtConfiguration.accessTokenTtl,
+        { email: user.email },
+      ),
+
+      await this.asignToken<Partial<ActiveUserData>>(
+        user.id,
+        this.jwtConfiguration.refreshTokenTtl,
+      ),
+    ]);
+
+    return { accessToken, refreshToken };
+  }
+
+  private async asignToken<T>(userId: number, expiresIn: number, payload?: T) {
+    return await this.jwrService.signAsync(
       {
-        sub: user.id,
-        email: user.email,
+        sub: userId,
+        ...payload,
       },
       {
         audience: this.jwtConfiguration.audience,
         issuer: this.jwtConfiguration.audience,
         secret: this.jwtConfiguration.secret,
-        expiresIn: this.jwtConfiguration.accessTokenTtl,
+        expiresIn,
       },
     );
-
-    return { accessToken };
   }
 }

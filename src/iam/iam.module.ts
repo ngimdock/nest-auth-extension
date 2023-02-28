@@ -17,6 +17,7 @@ import { AccessTokenGuard, AuthenticationGuard } from './authentication/guards';
     ConfigModule.forFeature(jwtConfig),
   ],
   providers: [
+    AccessTokenGuard,
     {
       provide: APP_GUARD,
       useClass: AuthenticationGuard,
@@ -25,7 +26,6 @@ import { AccessTokenGuard, AuthenticationGuard } from './authentication/guards';
       provide: HashingService,
       useClass: BcryptService,
     },
-    AccessTokenGuard,
     AuthenticationService,
   ],
   controllers: [AuthenticationController],
