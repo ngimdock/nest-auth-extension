@@ -7,7 +7,8 @@ import {
   Param,
   Delete,
 } from '@nestjs/common';
-import { Roles } from 'src/iam/authorization/decorators';
+import { Permissions, Roles } from 'src/iam/authorization/decorators';
+import { Permission } from 'src/iam/authorization/permission.type';
 import { Role } from 'src/users/enums';
 import { CoffeesService } from './coffees.service';
 import { CreateCoffeeDto } from './dto/create-coffee.dto';
@@ -17,7 +18,7 @@ import { UpdateCoffeeDto } from './dto/update-coffee.dto';
 export class CoffeesController {
   constructor(private readonly coffeesService: CoffeesService) {}
 
-  @Roles(Role.Regular)
+  @Roles(Role.Admin)
   @Post()
   create(@Body() createCoffeeDto: CreateCoffeeDto) {
     return this.coffeesService.create(createCoffeeDto);
@@ -39,7 +40,7 @@ export class CoffeesController {
     return this.coffeesService.update(+id, updateCoffeeDto);
   }
 
-  @Roles(Role.Admin)
+  @Permissions(Permission.DeleteCoffee)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.coffeesService.remove(+id);

@@ -83,8 +83,6 @@ export class AuthenticationService {
         refreshTokenId,
       );
 
-      console.log({ isRefreshTokenValid });
-
       if (isRefreshTokenValid) this.refreshTokenIdsStorage.invalide(user.id);
       else throw new Error('Refresh token is invaled.');
 
@@ -104,7 +102,11 @@ export class AuthenticationService {
       this.asignToken<Partial<ActiveUserData>>(
         user.id,
         this.jwtConfiguration.accessTokenTtl,
-        { email: user.email, role: user.role },
+        {
+          email: user.email,
+          role: user.role,
+          permissions: user.permissions,
+        },
       ),
 
       this.asignToken<RefreshTokenPayload>(
