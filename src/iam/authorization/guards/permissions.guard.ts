@@ -1,7 +1,7 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
-import { REQUEST_USER_KEY } from 'src/iam/iam.constant';
+import { REQUEST_USER_KEY } from 'src/iam/iam.constants';
 import { ActiveUserData } from 'src/iam/interfaces';
 import { PERMISSIONS_KEY } from '../decorators';
 import { PermissionType } from '../permission.type';
@@ -16,8 +16,6 @@ export class PermissionsGuard implements CanActivate {
       PERMISSIONS_KEY,
       context.getHandler(),
     );
-
-    console.log({ contextPermissions });
 
     if (!contextPermissions) return true;
 

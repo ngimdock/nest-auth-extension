@@ -8,10 +8,14 @@ import { JwtModule } from '@nestjs/jwt';
 import jwtConfig from './config/jwt.config';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
-import { AccessTokenGuard, AuthenticationGuard } from './authentication/guards';
+import {
+  AccessTokenGuard,
+  ApiKeyGuard,
+  AuthenticationGuard,
+} from './authentication/guards';
 import { RefreshTokenIdsStorage } from './authentication/refresh-token-ids.storage';
 import { PermissionsGuard, RolesGuard } from './authorization/guards';
-
+import { ApiKeysService } from './authentication/api-keys.service';
 @Module({
   imports: [
     UsersModule,
@@ -20,6 +24,7 @@ import { PermissionsGuard, RolesGuard } from './authorization/guards';
   ],
   providers: [
     AccessTokenGuard,
+    ApiKeyGuard,
     {
       provide: APP_GUARD,
       useClass: AuthenticationGuard,
@@ -34,6 +39,7 @@ import { PermissionsGuard, RolesGuard } from './authorization/guards';
     },
     RefreshTokenIdsStorage,
     AuthenticationService,
+    ApiKeysService,
   ],
   controllers: [AuthenticationController],
 })

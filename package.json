@@ -12,6 +12,7 @@
     "prisma:dev:deploy": "npx prisma migrate deploy",
     "prisma:dev:studio": "npx prisma studio",
     "prisma:dev:display": "yarn prisma:dev:deploy && yarn prisma:dev:studio",
+    "repl": "yarn start --entryFile repl",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
